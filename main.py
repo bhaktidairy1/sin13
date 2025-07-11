@@ -250,7 +250,7 @@ def cerbera_battle(s):
         # hex_send(s, "0002013a000f300211000000000000000000009920", "Final Return to Map")
         # hex_recv_NOPRINT(s, label="Return-ACK")
         # hex_recv(s, label="Return-Payload")
-        print("[+] cerbera Battle complete!")
+        #print("[+] cerbera Battle complete!")
 
     except Exception as e:
         print("[!] cerbera Battle error:", e)
@@ -413,6 +413,10 @@ def main(port):
         # 17) Char “idle + coords” right away:
         #     “00067110” + <char_id_hex> + coords packet
         send_and_log("00067110" + char_id_hex + CURRENT_COORDS, "Char Idle + Coords")
+
+        send_and_log("0006a10255a4b85b", "Summon Pet")    #for each sin TODO
+        #    → server: update
+        hex_recv(s, label="Summon Pet")
     
         print("\n[+] Game session established. Starting packet loop and GUI…\n")
         print("[+] Entering infinite cerbera Battle loop")
@@ -436,17 +440,22 @@ def main(port):
                 drain_socket(s)
                 total_earned = 0
                 inventory = get_inventory_items(s)
+                # Fur
                 fur_id = inventory["fur"]["id"]
-                try:
-                    fur_qty_hex = inventory["fur"]["qty"].to_bytes(1, 'big').hex()
-                except OverflowError:
-                    fur_qty_hex = '63'
-    
+                fur_qty = inventory["fur"]["qty"]
+                if fur_qty > 0x7F:
+                    fur_qty_hex = '7f'
+                else:
+                    fur_qty_hex = fur_qty.to_bytes(1, 'big').hex()
+
+                # Claw
                 claw_id = inventory["claw"]["id"]
-                try:
-                    claw_qty_hex = (inventory["claw"]["qty"]).to_bytes(1, 'big').hex()
-                except OverflowError:
-                    claw_qty_hex = '63'
+                claw_qty = inventory["claw"]["qty"]
+                if claw_qty > 0x7F:
+                    claw_qty_hex = '7f'
+                else:
+                    claw_qty_hex = claw_qty.to_bytes(1, 'big').hex()
+
                 sword_id = inventory["sword"]["id"]
     
                 if fur_id:
